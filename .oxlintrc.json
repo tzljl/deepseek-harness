@@ -25,6 +25,10 @@
     "vendor/**", // Vendored source keeps upstream style and idioms.
     "packages/experimental/claude-code-mods/examples/*/{hooks,tests,types}/**", // Claude Code's published example mods and their tests keep the upstream style; see the headers.
     "native/**", // The imported landlock-run subtree has its own gates; see native/README.md.
+    // The browser extension is a browser-only project (Chrome MV3 APIs, DOM
+    // lib, upstream author's style): its sources keep their own idioms and are
+    // type-checked by its own tsconfig, not the repository lint profile.
+    "apps/browser-extension/**",
     "**/*.js",
     "**/*.mjs",
     "**/*.config.ts", // Tool and app configs are outside the repository TypeScript programs.

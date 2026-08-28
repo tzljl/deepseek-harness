@@ -1,0 +1,26 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    { "path": "../../../vendor/cordis" },
+    { "path": "../../../vendor/schemastery" },
+    { "path": "../../client/connection/tsconfig.host.json" },
+    { "path": "../../host/webserver" },
+    { "path": "../../runtime-diagnostics/invariants" },
+    { "path": "../../core/agent" },
+    { "path": "../../core/session" },
+    { "path": "../../core/tools" },
+    { "path": "../../attachment/attachment" },
+    { "path": "../../llm/llm" },
+    { "path": "../../util/home-paths" },
+    { "path": "../../workspace/workspace" },
+    { "path": "../../interaction/user-questions" },
+    { "path": "../../api/session-controller/tsconfig.host.json" }
+  ]
+}

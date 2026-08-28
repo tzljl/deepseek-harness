@@ -599,3 +599,11 @@
       name: '@deepseek-ai/dsh-agent-preset-registry'
       config:
         default: standard
+
+    # Browser bridge (dsh-browser integration): opt-in. Enabling it mounts the
+    # /ext/bridge WebSocket carrier and the browser_* tool set for the
+    # Chrome/Firefox extension. A user enables it through
+    # `dsh plugin --profile web enable bridge-browser` or a profile patch.
+    - id: bridge-browser
+      name: '@deepseek-ai/dsh-bridge-browser'
+      disabled: true

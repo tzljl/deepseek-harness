@@ -14,6 +14,9 @@
     "website/.generated/**",
     "vendor/**",
     "native/**",
+    // The browser extension keeps its own style (Chrome MV3 APIs, upstream
+    // author's idioms); it is linted by none of the repository profiles.
+    "apps/browser-extension/**",
     "**/*.js",
     "**/*.mjs",
     "**/*.config.ts",

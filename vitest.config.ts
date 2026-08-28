@@ -206,7 +206,13 @@ export default defineConfig({
     ],
     // .tsx: client component specs (jsdom via per-file @vitest-environment pragma).
     include: testIncludes,
-    exclude: platformUnsupportedTests,
+    exclude: [
+      ...platformUnsupportedTests,
+      // The browser extension is its own project (apps/browser-extension) with
+      // a dedicated vitest config, jsdom pragmas, and Chrome API mocks; the
+      // workspace aggregate does not run its suites.
+      'apps/browser-extension/tests/**',
+    ],
     // One coverage invocation aggregates both projects. Every suite forks for
     // Node stability; process-bound suites stay separate for inventory control.
     projects: [
@@ -229,6 +235,9 @@ export default defineConfig({
             ...platformUnsupportedTests,
             ...processBoundTests,
             ...coverageExemptExcludes,
+            // Browser-only suites owned by their own projects/configs.
+            'apps/browser-extension/tests/**',
+            'packages/browser/bridge-browser/tests/e2e/**',
           ],
         },
       },

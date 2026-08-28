@@ -273,7 +273,15 @@
     "scripts/*.client.spec.ts",
     "scripts/client-bundle-css.spec.ts",
     "packages/typert/generator/tests/fixtures/**",
-    "scripts/client-bundle-purity.spec.ts"
+    "scripts/client-bundle-purity.spec.ts",
+    // The bridge's e2e suite drives a real Chrome extension through the
+    // bridge WebSocket; it belongs to the browser lane (apps/browser-extension),
+    // not the Node host aggregate.
+    "packages/browser/bridge-browser/tests/e2e/**",
+    // The browser extension is a browser-only project (Chrome MV3 APIs, DOM
+    // lib, its own vite build): its sources and tests are checked by its own
+    // tsconfig under apps/browser-extension, not the Node host aggregate.
+    "apps/browser-extension/**"
   ],
   "references": [
     { "path": "./packages/experimental/action-cards" },
@@ -586,6 +594,7 @@
     { "path": "./packages/boot/plugin-market" },
     { "path": "./packages/llm/plugin-package-inventory-deepseek" },
     { "path": "./packages/host/webserver" },
+    { "path": "./packages/browser/bridge-browser" },
     { "path": "./packages/sdk/client" },
     { "path": "./packages/sdk/protocol" },
     { "path": "./packages/lsp/lsp" },
