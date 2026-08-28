@@ -306,5 +306,9 @@
     "@deepseek-ai/dsh-experimental-forge-github": "workspace:*",
     "@deepseek-ai/dsh-experimental-forge-session": "workspace:*",
     "@deepseek-ai/dsh-action-cards": "workspace:*"
+  },
+  "dependencies": {
+    "dsh-plugin-browser-use": "^0.3.1",
+    "playwright": "^1.61.1"
   }
 }
