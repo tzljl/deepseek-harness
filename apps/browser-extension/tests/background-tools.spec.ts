@@ -26,7 +26,7 @@ function mockChrome(options: {
     target?: { frameId?: number; documentId?: string },
   ) => {
     const targetFrameId = target?.frameId
-      ?? currentFrames().find((frame) => frame.documentId === target?.documentId)?.frameId
+      ?? currentFrames().find(frame => frame.documentId === target?.documentId)?.frameId
       ?? 0
     const response = options.respond?.(message, targetFrameId) ?? responses.shift()
     if (response instanceof Error) throw response
@@ -173,7 +173,7 @@ describe('dispatchToolCall', () => {
     expect(text).toContain('TOP SNAPSHOT')
     expect(text).toContain('iframe frame=4 parent=0 origin=https://login.example.net')
     expect(text).toContain('IFRAME SNAPSHOT')
-    expect(chromeMock.sendMessage.mock.calls.map((call) => call[2])).toEqual([
+    expect(chromeMock.sendMessage.mock.calls.map(call => call[2])).toEqual([
       { documentId: 'top-doc' },
       { documentId: 'child-doc' },
     ])
@@ -211,15 +211,15 @@ describe('dispatchToolCall', () => {
     const budget = { maxItems: 10, maxChars: 1_000 }
     const chromeMock = mockChrome({
       tab: { id: 33, url: 'https://app.example/' },
-      respond: (message) => (message as { action?: string }).action === 'browser_snapshot'
+      respond: message => (message as { action?: string }).action === 'browser_snapshot'
         ? { ok: true, result: { text: 'Initial page' } }
         : {
-            ok: true,
-            result: {
-              text: 'Clicked [3].',
-              pageContent: 'Page change v2\nChanged main content:\nOrder complete',
-            },
+          ok: true,
+          result: {
+            text: 'Clicked [3].',
+            pageContent: 'Page change v2\nChanged main content:\nOrder complete',
           },
+        },
     })
     await dispatchToolCall(CALL, 'auto', budget)
     chromeMock.sendMessage.mockClear()
@@ -247,15 +247,15 @@ describe('dispatchToolCall', () => {
     const call: ToolCall = { id: 'tool-private-delta', name: 'browser_click', args: { index: 2 } }
     const chromeMock = mockChrome({
       tab: { id: 34, url: 'https://private.example/' },
-      respond: (message) => (message as { action?: string }).action === 'browser_snapshot'
+      respond: message => (message as { action?: string }).action === 'browser_snapshot'
         ? { ok: true, result: { text: 'Initial private page' } }
         : {
-            ok: true,
-            result: {
-              text: 'Clicked [2].',
-              pageContent: 'This content must not cross the sharing boundary',
-            },
+          ok: true,
+          result: {
+            text: 'Clicked [2].',
+            pageContent: 'This content must not cross the sharing boundary',
           },
+        },
     })
     await dispatchToolCall(CALL, 'auto')
     chromeMock.sendMessage.mockClear()
@@ -278,14 +278,14 @@ describe('dispatchToolCall', () => {
     const chromeMock = mockChrome({
       tab: { id: 35, url: 'https://app.example/start' },
       frames,
-      respond: (message) => (message as { action?: string }).action === 'browser_navigate'
+      respond: message => (message as { action?: string }).action === 'browser_navigate'
         ? {
-            ok: true,
-            result: {
-              text: 'Navigating to https://app.example/next. Call browser_snapshot again after the page loads.',
-              navigationPending: true,
-            },
-          }
+          ok: true,
+          result: {
+            text: 'Navigating to https://app.example/next. Call browser_snapshot again after the page loads.',
+            navigationPending: true,
+          },
+        }
         : { ok: true, result: { text: 'Title: Next page\nURL: https://app.example/next' } },
     })
 

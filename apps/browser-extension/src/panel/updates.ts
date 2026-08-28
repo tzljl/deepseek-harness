@@ -100,7 +100,7 @@ export function managedInstallCommand(userAgent: string = navigator.userAgent): 
 
 function versionParts(version: string): number[] {
   if (!/^\d+(?:\.\d+){0,3}$/.test(version)) throw new Error('invalid extension version')
-  return version.split('.').map((part) => Number(part))
+  return version.split('.').map(part => Number(part))
 }
 
 /** Compare Chrome's one-to-four-part numeric extension versions. */

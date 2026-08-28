@@ -17,7 +17,7 @@ export interface SessionPickerEntry {
 
 /** Only ordinary, started conversations can be resumed through session.prompt. */
 export function resumableSessions(items: readonly SessionPickerEntry[]): SessionPickerEntry[] {
-  return items.filter((entry) => !entry.blank && entry.origin !== 'subagent')
+  return items.filter(entry => !entry.blank && entry.origin !== 'subagent')
 }
 
 /** Prefer the explicit recent-session hint, then durable sessions in host recency order. */
@@ -27,7 +27,7 @@ export function sessionResumeCandidates(
 ): string[] {
   return [
     ...(hint === null || hint.trim() === '' ? [] : [hint]),
-    ...resumableSessions(entries).map((entry) => entry.sessionId).filter((id) => id !== hint),
+    ...resumableSessions(entries).map(entry => entry.sessionId).filter(id => id !== hint),
   ]
 }
 

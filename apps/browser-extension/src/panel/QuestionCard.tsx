@@ -45,8 +45,8 @@ export function QuestionCard({
             drafts={drafts}
             disabled={submitting}
             copy={copy}
-            onToggle={(label, checked) => { setDrafts((current) => toggleQuestionOption(current, index, item, label, checked)) }}
-            onCustom={(value) => { setDrafts((current) => setQuestionCustomAnswer(current, index, item, value)) }}
+            onToggle={(label, checked) => { setDrafts(current => toggleQuestionOption(current, index, item, label, checked)) }}
+            onCustom={(value) => { setDrafts(current => setQuestionCustomAnswer(current, index, item, value)) }}
           />
         ))}
       </div>

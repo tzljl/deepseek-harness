@@ -122,14 +122,14 @@ function relayTokenRef(routeKey: string): string {
 }
 
 function parseRelayModels(text: string): Array<{ id: string; contextWindow?: number }> {
-  return text.split('\n').map((line) => line.trim()).filter((line) => line !== '').map((line) => {
-    const [id, contextWindow] = line.split(',').map((part) => part.trim())
+  return text.split('\n').map(line => line.trim()).filter(line => line !== '').map((line) => {
+    const [id, contextWindow] = line.split(',').map(part => part.trim())
     const parsed = contextWindow === undefined || contextWindow === '' ? undefined : Number(contextWindow)
     return {
       id,
       ...(parsed !== undefined && Number.isFinite(parsed) && parsed > 0 ? { contextWindow: parsed } : {}),
     }
-  }).filter((model) => model.id !== '')
+  }).filter(model => model.id !== '')
 }
 
 /** Gateways report failures with the endpoint named; surface everything we got. */
@@ -400,7 +400,7 @@ function ApprovalDialog({
           <span>{copy.approval.origins}</span>
           {request.origins.length === 0
             ? <code className="unknown">{copy.approval.unknownOrigin}</code>
-            : request.origins.map((origin) => <code key={origin}>{origin}</code>)}
+            : request.origins.map(origin => <code key={origin}>{origin}</code>)}
         </div>
         <div className="approval-actions">
           <button className="deny" autoFocus onClick={() => onDecision('deny')}>{copy.approval.deny}</button>
@@ -664,7 +664,7 @@ export function App(): React.JSX.Element {
         sessionRef.current = null
         sessionRuntimeRef.current.clear()
         setRows([])
-        setDraft((current) => ({ ...current, images: [] }))
+        setDraft(current => ({ ...current, images: [] }))
         setImageLimits(null)
         imageProjectionRef.current = { sessionId: null, seq: Number.NEGATIVE_INFINITY, limits: null }
         setSessionTitle(null)
@@ -674,15 +674,15 @@ export function App(): React.JSX.Element {
         setShowSessionPicker(false)
         stoppingRef.current = false
         clearQuestions()
-        setSessionEpoch((epoch) => epoch + 1)
+        setSessionEpoch(epoch => epoch + 1)
       }
     })
     const offEvent = api.onEvent((frame) => { void onFrame(frame) })
     const offApproval = api.onApprovalRequest((request) => {
-      updateApprovalQueue((current) => current.some((entry) => entry.id === request.id) ? current : [...current, request])
+      updateApprovalQueue(current => current.some(entry => entry.id === request.id) ? current : [...current, request])
     })
     const offApprovalResolved = api.onApprovalResolved((id) => {
-      updateApprovalQueue((current) => current.filter((request) => request.id !== id))
+      updateApprovalQueue(current => current.filter(request => request.id !== id))
     })
     const offTabAffinity = api.onTabAffinity(setTabAffinity)
     const offSelection = api.onSelection(setSelection)
@@ -809,18 +809,18 @@ export function App(): React.JSX.Element {
     if (payload.sessionId !== sessionRef.current) return
     const row = rowFromEvent(payload.event)
     if (row !== null) {
-      setRows((prev) => appendLiveRow(prev, row.kind, row.text, nextSeq(), row.images))
+      setRows(prev => appendLiveRow(prev, row.kind, row.text, nextSeq(), row.images))
       return
     }
     if (payload.event.type === 'tool/call') {
       setWorking(true)
       const summary = toolSummary(payload.event.data?.name ?? 'tool', payload.event.data?.arguments, locale)
-      setRows((prev) => appendLiveRow(prev, 'tool', summary, nextSeq()))
+      setRows(prev => appendLiveRow(prev, 'tool', summary, nextSeq()))
       return
     }
     if (payload.event.type === 'tool/result') {
       // 并入最后一行工具行：调用已完成（不新增行）。
-      setRows((prev) => completeLastTool(prev, nextSeq()))
+      setRows(prev => completeLastTool(prev, nextSeq()))
       return
     }
   }
@@ -884,7 +884,7 @@ export function App(): React.JSX.Element {
 
   function applyHistory(id: string, history: HistoryPage): void {
     if (sessionRef.current !== id) return
-    const events = history.events.map((entry) => entry.event)
+    const events = history.events.map(entry => entry.event)
     applyHistoryImageProjection(id, history.projections)
     const historyTitle = latestSessionTitle(events)
     if (historyTitle !== undefined) setSessionTitle(historyTitle)
@@ -921,7 +921,7 @@ export function App(): React.JSX.Element {
     for (const entry of listed.items ?? []) {
       sessionRuntimeRef.current.seedRunning(entry.sessionId, entry.running)
     }
-    return resumableSessions(listed.items ?? []).filter((entry) => !archived.has(entry.sessionId))
+    return resumableSessions(listed.items ?? []).filter(entry => !archived.has(entry.sessionId))
   }
 
   /** Restore the last browser conversation, then the latest durable one, before creating a chat. */
@@ -943,7 +943,7 @@ export function App(): React.JSX.Element {
           try {
             const history = await readHistory(id)
             if (sessionTransitionRef.current !== transition) return
-            const entry = entries.find((candidate) => candidate.sessionId === id)
+            const entry = entries.find(candidate => candidate.sessionId === id)
             const runtime = sessionRuntimeRef.current.snapshot(id, entry?.running ?? false)
             // A highlight captured while startup history is loading belongs to
             // the still-open page, so automatic restoration must not erase it.
@@ -980,7 +980,7 @@ export function App(): React.JSX.Element {
     setLoadingSessions(true)
     try {
       const items = await loadVisibleSessions()
-      const current = items.find((entry) => entry.sessionId === sessionRef.current)
+      const current = items.find(entry => entry.sessionId === sessionRef.current)
       const currentTitle = current === undefined ? undefined : projectedSessionTitle(current)
       if (currentTitle !== undefined) setSessionTitle(currentTitle)
       setSessionList(items)
@@ -1025,7 +1025,7 @@ export function App(): React.JSX.Element {
       } catch (cause) {
         purgeFailure = cause instanceof Error ? cause.message : String(cause)
       }
-      setSessionList((prev) => prev.filter((item) => item.sessionId !== entry.sessionId))
+      setSessionList(prev => prev.filter(item => item.sessionId !== entry.sessionId))
       if (purgeFailure !== null) {
         // 归档已生效（列表不再显示），但磁盘清理失败需要用户知道。
         setError(copy.app.deletePurgeFailed(purgeFailure))
@@ -1053,7 +1053,7 @@ export function App(): React.JSX.Element {
         historyError = cause
       }
       if (sessionTransitionRef.current !== transition
-        || !approvalQueueRef.current.some((entry) => entry.id === request.id)) return
+        || !approvalQueueRef.current.some(entry => entry.id === request.id)) return
       const runtime = sessionRuntimeRef.current.snapshot(sessionId)
       prepareSessionSwitch(runtime.running, runtime.questions)
       sessionRef.current = sessionId
@@ -1141,7 +1141,7 @@ export function App(): React.JSX.Element {
     try {
       const prepared = await prepareImageFiles(files, existing, limits)
       if (sessionRef.current === sessionId) {
-        setDraft((current) => ({ ...current, images: [...current.images, ...prepared] }))
+        setDraft(current => ({ ...current, images: [...current.images, ...prepared] }))
       }
     } catch (cause) {
       if (sessionRef.current === sessionId) setError(imageErrorMessage(cause, copy, limits))
@@ -1185,7 +1185,7 @@ export function App(): React.JSX.Element {
         // Conditional clearing cannot consume a newer highlight captured in
         // the meantime, and its broadcast updates every panel together.
         void api.clearSelection(submittedSelection).then(() => {
-          setSelection((current) => current?.capturedAt === submittedSelection.capturedAt ? null : current)
+          setSelection(current => current?.capturedAt === submittedSelection.capturedAt ? null : current)
         }).catch(() => {})
       }
     } catch (cause) {
@@ -1193,7 +1193,7 @@ export function App(): React.JSX.Element {
         setError(imageErrorMessage(cause, copy, imageLimits ?? undefined))
         setWorking(false)
         if (textOverride === undefined) {
-          setDraft((current) => restoreSubmittedDraft(current, submittedDraft))
+          setDraft(current => restoreSubmittedDraft(current, submittedDraft))
         }
       }
     } finally {
@@ -1245,7 +1245,7 @@ export function App(): React.JSX.Element {
         const described = await api.rpc<{
           namespaces?: Array<{ ns: string; value?: Record<string, unknown> }>
         }>('settings.describe', {})
-        const ns = described.namespaces?.find((candidate) => candidate.ns === 'llm-pi-ai')
+        const ns = described.namespaces?.find(candidate => candidate.ns === 'llm-pi-ai')
         const providers = (ns?.value?.providers ?? {}) as Record<string, {
           displayName?: string
           api?: string
@@ -1253,12 +1253,12 @@ export function App(): React.JSX.Element {
           apiKeyEnv?: string
           models?: Array<{ id: string; contextWindow?: number }>
         }>
-        const defaults = (described.namespaces?.find((candidate) => candidate.ns === 'agent-default-model')
+        const defaults = (described.namespaces?.find(candidate => candidate.ns === 'agent-default-model')
           ?.value ?? {}) as { provider?: unknown }
         const refs = Object.entries(providers)
           .filter(([key]) => key.startsWith(RELAY_ROUTE_PREFIX))
           .map(([, route]) => typeof route.apiKeyEnv === 'string' ? route.apiKeyEnv : '')
-          .filter((ref) => ref !== '')
+          .filter(ref => ref !== '')
         let configuredRefs = new Set<string>()
         if (refs.length > 0) {
           try {
@@ -1286,10 +1286,10 @@ export function App(): React.JSX.Element {
             baseUrl: typeof route.baseURL === 'string' ? route.baseURL : '',
             token: '',
             tokenConfigured: route.apiKeyEnv !== undefined && configuredRefs.has(route.apiKeyEnv),
-            modelsText: (route.models ?? []).map((model) => [
+            modelsText: (route.models ?? []).map(model => [
               model.id,
               model.contextWindow === undefined ? '' : String(model.contextWindow),
-            ].filter((part) => part !== '').join(', ')).join('\n'),
+            ].filter(part => part !== '').join(', ')).join('\n'),
             setDefault: defaults.provider === key,
           }))
         if (!cancelled) setRelayProfiles(drafts)
@@ -1302,12 +1302,12 @@ export function App(): React.JSX.Element {
   }, [api, showSettings, relayLoaded])
 
   function updateRelayProfile(index: number, patch: Partial<RelayProfileDraft>): void {
-    setRelayProfiles((current) => current.map((profile, at) => at === index ? { ...profile, ...patch } : profile))
+    setRelayProfiles(current => current.map((profile, at) => at === index ? { ...profile, ...patch } : profile))
   }
 
   function addRelayProfile(): void {
     setRelayNotice(null)
-    setRelayProfiles((current) => [...current, {
+    setRelayProfiles(current => [...current, {
       key: '',
       name: '',
       protocol: 'openai-completions',
@@ -1321,7 +1321,7 @@ export function App(): React.JSX.Element {
 
   async function removeRelayProfile(index: number): Promise<void> {
     const profile = relayProfiles[index]
-    setRelayProfiles((current) => current.filter((_, at) => at !== index))
+    setRelayProfiles(current => current.filter((_, at) => at !== index))
     setRelayNotice(null)
     if (profile === undefined || profile.key === '') return
     try {
@@ -1346,7 +1346,7 @@ export function App(): React.JSX.Element {
     setRelayNotice(copy.settings.relayTesting)
     try {
       const { models, viaOpenaiListing } = await discoverWithFallback(api, profile)
-      const ids = models.map((model) => model.id)
+      const ids = models.map(model => model.id)
       if (ids.length === 0) {
         setRelayNotice(copy.settings.relayTestManualOnly)
         return
@@ -1380,10 +1380,10 @@ export function App(): React.JSX.Element {
         return
       }
       updateRelayProfile(index, {
-        modelsText: models.map((model) => [
+        modelsText: models.map(model => [
           model.id,
           model.contextWindow === undefined ? '' : String(model.contextWindow),
-        ].filter((part) => part !== '').join(', ')).join('\n'),
+        ].filter(part => part !== '').join(', ')).join('\n'),
       })
       setRelayNotice(copy.settings.relayFetchOk(models.length)
         + (viaOpenaiListing ? copy.settings.relayOpenaiListingNote : ''))
@@ -1472,9 +1472,9 @@ export function App(): React.JSX.Element {
     try {
       await api.respondToApproval(request.id, decision)
       if (decision === 'always-allow-reads') {
-        setSettings((current) => current === null ? current : { ...current, sharePageContent: 'auto' })
+        setSettings(current => current === null ? current : { ...current, sharePageContent: 'auto' })
       }
-      updateApprovalQueue((current) => current.filter((entry) => entry.id !== request.id))
+      updateApprovalQueue(current => current.filter(entry => entry.id !== request.id))
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
     }
@@ -1492,16 +1492,16 @@ export function App(): React.JSX.Element {
   function addTrustedOrigin(): void {
     const origin = normalizeWebOrigin(trustedOriginInput)
     if (origin === null) return
-    setSettings((current) => current === null
+    setSettings(current => current === null
       ? current
       : { ...current, trustedActionOrigins: [...new Set([...current.trustedActionOrigins, origin])].sort() })
     setTrustedOriginInput('')
   }
 
   function removeTrustedOrigin(origin: string): void {
-    setSettings((current) => current === null
+    setSettings(current => current === null
       ? current
-      : { ...current, trustedActionOrigins: current.trustedActionOrigins.filter((candidate) => candidate !== origin) })
+      : { ...current, trustedActionOrigins: current.trustedActionOrigins.filter(candidate => candidate !== origin) })
   }
 
   // 状态栏只显示连接状态；快照上限是技术细节，在设置页说明（见 hint）。
@@ -1528,7 +1528,7 @@ export function App(): React.JSX.Element {
             <small>{copy.settings.bridgeHelp}</small>
             <input
               value={settings?.bridgeUrl ?? ''}
-              onChange={(e) => setSettings((prev) => prev === null ? prev : { ...prev, bridgeUrl: e.target.value })}
+              onChange={e => setSettings(prev => prev === null ? prev : { ...prev, bridgeUrl: e.target.value })}
               placeholder={copy.settings.bridgePlaceholder}
             />
           </label>
@@ -1538,7 +1538,7 @@ export function App(): React.JSX.Element {
             <input
               type="password"
               value={settings?.token ?? ''}
-              onChange={(e) => setSettings((prev) => prev === null ? prev : { ...prev, token: e.target.value })}
+              onChange={e => setSettings(prev => prev === null ? prev : { ...prev, token: e.target.value })}
               placeholder={copy.settings.tokenPlaceholder}
             />
           </label>
@@ -1547,7 +1547,7 @@ export function App(): React.JSX.Element {
             <small>{copy.settings.pageSharingHelp}</small>
             <select
               value={settings?.sharePageContent ?? 'auto'}
-              onChange={(e) => setSettings((prev) => prev === null ? prev : { ...prev, sharePageContent: e.target.value as PanelSettings['sharePageContent'] })}
+              onChange={e => setSettings(prev => prev === null ? prev : { ...prev, sharePageContent: e.target.value as PanelSettings['sharePageContent'] })}
             >
               <option value="auto">{copy.settings.sharingAuto}</option>
               <option value="ask">{copy.settings.sharingAsk}</option>
@@ -1565,7 +1565,7 @@ export function App(): React.JSX.Element {
               className="setting-toggle-input"
               type="checkbox"
               checked={settings?.approvalNotifications ?? true}
-              onChange={(event) => setSettings((current) => current === null
+              onChange={event => setSettings(current => current === null
                 ? current
                 : { ...current, approvalNotifications: event.target.checked })}
             />
@@ -1580,7 +1580,7 @@ export function App(): React.JSX.Element {
               className="setting-toggle-input"
               type="checkbox"
               checked={settings?.autoResumeSession ?? true}
-              onChange={(event) => setSettings((current) => current === null
+              onChange={event => setSettings(current => current === null
                 ? current
                 : { ...current, autoResumeSession: event.target.checked })}
             />
@@ -1602,7 +1602,7 @@ export function App(): React.JSX.Element {
                 <span>{copy.settings.relayName}</span>
                 <input
                   value={profile.name}
-                  onChange={(event) => updateRelayProfile(index, { name: event.target.value })}
+                  onChange={event => updateRelayProfile(index, { name: event.target.value })}
                   placeholder={copy.settings.relayNamePlaceholder}
                 />
               </label>
@@ -1610,7 +1610,7 @@ export function App(): React.JSX.Element {
                 <span>{copy.settings.relayProtocol}</span>
                 <select
                   value={profile.protocol}
-                  onChange={(event) => updateRelayProfile(index, {
+                  onChange={event => updateRelayProfile(index, {
                     protocol: event.target.value as RelayProfileDraft['protocol'],
                   })}
                 >
@@ -1623,7 +1623,7 @@ export function App(): React.JSX.Element {
                 <span>{copy.settings.relayBaseUrl}</span>
                 <input
                   value={profile.baseUrl}
-                  onChange={(event) => updateRelayProfile(index, { baseUrl: event.target.value })}
+                  onChange={event => updateRelayProfile(index, { baseUrl: event.target.value })}
                   placeholder="https://api.example.com/v1"
                 />
               </label>
@@ -1632,7 +1632,7 @@ export function App(): React.JSX.Element {
                 <input
                   type="password"
                   value={profile.token}
-                  onChange={(event) => updateRelayProfile(index, { token: event.target.value })}
+                  onChange={event => updateRelayProfile(index, { token: event.target.value })}
                   placeholder={copy.settings.relayTokenPlaceholder(profile.tokenConfigured)}
                 />
               </label>
@@ -1649,7 +1649,7 @@ export function App(): React.JSX.Element {
                   rows={3}
                   aria-label={copy.settings.relayModels}
                   value={profile.modelsText}
-                  onChange={(event) => updateRelayProfile(index, { modelsText: event.target.value })}
+                  onChange={event => updateRelayProfile(index, { modelsText: event.target.value })}
                   placeholder={copy.settings.relayModelsPlaceholder}
                 />
               </div>
@@ -1662,7 +1662,7 @@ export function App(): React.JSX.Element {
                   className="setting-toggle-input"
                   type="checkbox"
                   checked={profile.setDefault}
-                  onChange={(event) => setRelayProfiles((current) => current.map((candidate, at) => at === index
+                  onChange={event => setRelayProfiles(current => current.map((candidate, at) => at === index
                     ? { ...candidate, setDefault: event.target.checked }
                     : candidate))}
                 />
@@ -1692,7 +1692,7 @@ export function App(): React.JSX.Element {
             <input
               aria-label={copy.settings.trustedOriginInput}
               value={trustedOriginInput}
-              onChange={(event) => setTrustedOriginInput(event.target.value)}
+              onChange={event => setTrustedOriginInput(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter') addTrustedOrigin() }}
               placeholder="https://example.com / https://*.example.com"
             />
@@ -1702,7 +1702,7 @@ export function App(): React.JSX.Element {
             <p className="origin-error">{copy.settings.invalidOrigin}</p>
           )}
           {settings?.trustedActionOrigins.length === 0 && <p>{copy.settings.noTrustedOrigins}</p>}
-          {settings?.trustedActionOrigins.map((origin) => (
+          {settings?.trustedActionOrigins.map(origin => (
             <div className="trusted-origin" key={origin}>
               <code>{origin}</code>
               <button onClick={() => removeTrustedOrigin(origin)} aria-label={copy.settings.removeOrigin(origin)}>{copy.settings.remove}</button>
@@ -1798,7 +1798,7 @@ export function App(): React.JSX.Element {
             </button>
           </div>
         )}
-        {rows.map((row) => (
+        {rows.map(row => (
           <div key={row.seq} className={`row ${row.kind}`}>
             {row.kind === 'assistant' && <span className="assistant-avatar"><img src={whaleUrl} alt={copy.app.assistant} /></span>}
             {row.kind === 'tool'
@@ -1847,9 +1847,9 @@ export function App(): React.JSX.Element {
                       disabled={busy || addingImages}
                       aria-label={copy.app.removeImage(name)}
                       title={copy.app.removeImage(name)}
-                      onClick={() => setDraft((current) => ({
+                      onClick={() => setDraft(current => ({
                         ...current,
-                        images: current.images.filter((item) => item.id !== image.id),
+                        images: current.images.filter(item => item.id !== image.id),
                       }))}
                     >×</button>
                   </span>
@@ -1860,7 +1860,7 @@ export function App(): React.JSX.Element {
           <textarea
             value={input}
             onChange={(e) => {
-              if (!sendingRef.current) setDraft((current) => ({ ...current, text: e.target.value }))
+              if (!sendingRef.current) setDraft(current => ({ ...current, text: e.target.value }))
             }}
             onKeyDown={(e) => {
               // isComposing：输入法组词中的回车是确认选字，不是发送。

@@ -106,7 +106,7 @@ describe('SessionRuntimeCache', () => {
     cache.rememberQuestion({ rpcId: 'q1', sessionId: 'session', questions: [{ id: '1', question: 'First?' }] })
     cache.rememberQuestion({ rpcId: 'q2', sessionId: 'session', questions: [{ id: '2', question: 'Second?' }] })
     expect(cache.snapshot('session')).toMatchObject({ running: true })
-    expect(cache.snapshot('session').questions.map((question) => question.rpcId)).toEqual(['q1', 'q2'])
+    expect(cache.snapshot('session').questions.map(question => question.rpcId)).toEqual(['q1', 'q2'])
   })
 
   it('lets live status beat an older list baseline', () => {
@@ -121,7 +121,7 @@ describe('SessionRuntimeCache', () => {
     cache.rememberQuestion({ rpcId: 'q1', sessionId: 'session', questions: [{ id: '1', question: 'First?' }] })
     cache.rememberQuestion({ rpcId: 'q2', sessionId: 'session', questions: [{ id: '2', question: 'Second?' }] })
     cache.resolveQuestion({ rpcId: 'q2', sessionId: 'session' })
-    expect(cache.snapshot('session').questions.map((question) => question.rpcId)).toEqual(['q1'])
+    expect(cache.snapshot('session').questions.map(question => question.rpcId)).toEqual(['q1'])
     cache.finishTurn('session')
     expect(cache.snapshot('session')).toEqual({ running: false, questions: [] })
   })

@@ -141,7 +141,7 @@ describe('extension update checks', () => {
     // Windows PowerShell decodes a BOM-less script with the machine's ANSI codepage, which
     // turns every Chinese message into mojibake. Losing the BOM is silent, so pin it here.
     expect(readFileSync(installerPath).subarray(0, 3)).toEqual(Buffer.from([0xef, 0xbb, 0xbf]))
-    expect(installer).toContain("$InstallMode = if (Test-Path")
+    expect(installer).toContain('$InstallMode = if (Test-Path')
     expect(installer).toContain("{ 'managed' } else { 'checkout' }")
     expect(installer).toContain("Join-Path $DistDir 'install-info.json'")
     expect(installer).toContain('schemaVersion = 1')

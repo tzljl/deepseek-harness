@@ -347,7 +347,7 @@ let selectionWatchRevision = 0
  */
 function syncSelectionWatch(): void {
   const anyEnabled = selectionSharingEnabled()
-    && [...panelPorts].some((port) => panelWindows.get(port) !== undefined)
+    && [...panelPorts].some(port => panelWindows.get(port) !== undefined)
   const wasArmed = selectionWatchArmed
   selectionWatchArmed = anyEnabled
   const revision = ++selectionWatchRevision
@@ -422,13 +422,13 @@ function notifyApproval(request: ApprovalRequest, _windowId: number): void {
   if (!settings.approvalNotifications) return
   const copy = getUiLocale() === 'zh'
     ? {
-        title: '浏览器操作等待确认',
-        message: '点击通知打开 dsh 浏览器助手，并在 60 秒内确认或拒绝。',
-      }
+      title: '浏览器操作等待确认',
+      message: '点击通知打开 dsh 浏览器助手，并在 60 秒内确认或拒绝。',
+    }
     : {
-        title: 'Browser action awaiting approval',
-        message: 'Click to open dsh Browser Assistant, then allow or deny within 60 seconds.',
-      }
+      title: 'Browser action awaiting approval',
+      message: 'Click to open dsh Browser Assistant, then allow or deny within 60 seconds.',
+    }
   void Promise.resolve(chrome.notifications.create(approvalNotificationId(request.id), {
     type: 'basic',
     iconUrl: chrome.runtime.getURL('assets/icons/icon128.png'),
@@ -452,17 +452,17 @@ const approvals = new ApprovalCoordinator({
 function responseMessages(): { unavailable: string; timeout: string; duplicate: string; disconnected: string } {
   return getUiLocale() === 'zh'
     ? {
-        unavailable: '未连接 dsh，无法提交回答',
-        timeout: '提交回答超时，请重试',
-        duplicate: '回答请求编号重复，请重试',
-        disconnected: 'dsh 连接已断开，请重新连接后再试',
-      }
+      unavailable: '未连接 dsh，无法提交回答',
+      timeout: '提交回答超时，请重试',
+      duplicate: '回答请求编号重复，请重试',
+      disconnected: 'dsh 连接已断开，请重新连接后再试',
+    }
     : {
-        unavailable: 'dsh is not connected, so the answer could not be sent',
-        timeout: 'Sending the answer timed out. Try again.',
-        duplicate: 'The answer request ID was duplicated. Try again.',
-        disconnected: 'The dsh connection was lost. Reconnect and try again.',
-      }
+      unavailable: 'dsh is not connected, so the answer could not be sent',
+      timeout: 'Sending the answer timed out. Try again.',
+      duplicate: 'The answer request ID was duplicated. Try again.',
+      disconnected: 'The dsh connection was lost. Reconnect and try again.',
+    }
 }
 
 function cancelPendingApprovals(sessionId?: string): void {
@@ -749,7 +749,7 @@ async function refreshFollowedPage(sessionId: string, tabId: number): Promise<vo
       { id: crypto.randomUUID(), name: 'browser_snapshot', args: {} },
       settings.sharePageContent,
       budget,
-      (prompt) => authorizeToolCall(prompt, controller.signal, target.windowId, sessionId),
+      prompt => authorizeToolCall(prompt, controller.signal, target.windowId, sessionId),
       controller.signal,
       target,
       () => target.id !== undefined && tabAffinity.allowsTarget(target.id, sessionId),
@@ -851,17 +851,17 @@ function routeToolCall(call: ToolCall): void {
   const budget = caps === null
     ? undefined
     : { maxItems: caps.maxInteractiveItems, maxChars: caps.snapshotMaxChars }
-  void resolveToolTab(call.sessionId).then((target) => 'ok' in target
+  void resolveToolTab(call.sessionId).then(target => 'ok' in target
     ? target
     : dispatchToolCall(
-        call,
-        settings.sharePageContent,
-        budget,
-        (prompt) => authorizeToolCall(prompt, controller.signal, target.windowId, call.sessionId),
-        controller.signal,
-        target,
-        () => target.id !== undefined && tabAffinity.allowsTarget(target.id, call.sessionId),
-      )).then(
+      call,
+      settings.sharePageContent,
+      budget,
+      prompt => authorizeToolCall(prompt, controller.signal, target.windowId, call.sessionId),
+      controller.signal,
+      target,
+      () => target.id !== undefined && tabAffinity.allowsTarget(target.id, call.sessionId),
+    )).then(
     (answer) => {
       if (controller.signal.aborted) {
         if (activeToolCalls.get(call.id) === controller) {
@@ -1044,9 +1044,9 @@ chrome.runtime.onConnect.addListener((port) => {
           : sessionSnapshotRefreshes.get(rpcSessionId) ?? Promise.resolve()
         const prepare = rpcMsg.method === 'session.prompt'
           ? Promise.resolve().then(async () => {
-              await refresh
-              return rpcSessionId === undefined || tabAffinity.getSessionTab(rpcSessionId) !== undefined
-            })
+            await refresh
+            return rpcSessionId === undefined || tabAffinity.getSessionTab(rpcSessionId) !== undefined
+          })
           : Promise.resolve(true)
         void prepare.then((ready) => {
           if (!ready) throw new Error('This session is not bound to a live browser tab')

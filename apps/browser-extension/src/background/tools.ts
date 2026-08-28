@@ -249,8 +249,8 @@ async function snapshotAllFrames(
   }
 
   if (deltaRequested) {
-    const liveIds = new Set(frames.map((frame) => frame.frameId))
-    const removed = [...previous.keys()].filter((frameId) => frameId !== 0 && !liveIds.has(frameId))
+    const liveIds = new Set(frames.map(frame => frame.frameId))
+    const removed = [...previous.keys()].filter(frameId => frameId !== 0 && !liveIds.has(frameId))
     if (removed.length > 0) sections.push(`\nRemoved iframes: ${removed.join(', ')}`)
   }
 
@@ -304,7 +304,7 @@ async function dispatchOnce(
 
   const frameId = requestedFrame(call.args)
   if (frameId < 0) return { ok: false, error: { code: 'action-failed', message: 'frame must be a non-negative integer.' } }
-  const frame = frames.find((candidate) => candidate.frameId === frameId)
+  const frame = frames.find(candidate => candidate.frameId === frameId)
   if (frame === undefined) {
     return unavailable(`Frame ${frameId} does not exist or has navigated. Call browser_snapshot again.`)
   }
@@ -488,7 +488,7 @@ function validateFrameTarget(call: ToolCall, frames: TabFrame[]): ToolAnswer | u
   if (call.name === 'browser_snapshot') return undefined
   const frameId = requestedFrame(call.args)
   if (frameId < 0) return { ok: false, error: { code: 'action-failed', message: 'frame must be a non-negative integer.' } }
-  if (!frames.some((frame) => frame.frameId === frameId)) {
+  if (!frames.some(frame => frame.frameId === frameId)) {
     return unavailable(`Frame ${frameId} does not exist or has navigated. Call browser_snapshot again.`)
   }
   return undefined
@@ -497,7 +497,7 @@ function validateFrameTarget(call: ToolCall, frames: TabFrame[]): ToolAnswer | u
 function validateElementTarget(call: ToolCall, tabId: number, frames: TabFrame[]): ToolAnswer | undefined {
   if (call.name !== 'browser_click' && call.name !== 'browser_type') return undefined
   const frameId = requestedFrame(call.args)
-  const frame = frames.find((candidate) => candidate.frameId === frameId)
+  const frame = frames.find(candidate => candidate.frameId === frameId)
   const snapshotted = snapshotDocumentsByTab.get(tabId)?.get(frameId)
   if (frame === undefined || snapshotted === undefined || snapshotted !== frameDocumentKey(frame)) {
     return unavailable('The element reference does not belong to the current document. Call browser_snapshot again for current frame and index values.')
@@ -514,8 +514,8 @@ function sameApprovalBoundary(before: ApprovalPrompt, after: ApprovalPrompt): bo
 
 function sameTargetDocument(call: ToolCall, before: TabFrame[], after: TabFrame[]): boolean {
   const frameId = requestedFrame(call.args)
-  const beforeFrame = before.find((frame) => frame.frameId === frameId)
-  const afterFrame = after.find((frame) => frame.frameId === frameId)
+  const beforeFrame = before.find(frame => frame.frameId === frameId)
+  const afterFrame = after.find(frame => frame.frameId === frameId)
   return beforeFrame !== undefined
     && afterFrame !== undefined
     && frameDocumentKey(beforeFrame) === frameDocumentKey(afterFrame)

@@ -37,7 +37,7 @@ export function isSensitiveField(el: Element): boolean {
     ? el.name
     : ''
   const haystack = [el.id, name, el.getAttribute('aria-label')].filter(Boolean).join(' ')
-  return SENSITIVE_PATTERNS.some((pattern) => pattern.test(haystack))
+  return SENSITIVE_PATTERNS.some(pattern => pattern.test(haystack))
 }
 
 /**
