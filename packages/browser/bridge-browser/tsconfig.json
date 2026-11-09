@@ -12,7 +12,6 @@
     { "path": "../../../vendor/schemastery" },
     { "path": "../../client/connection/tsconfig.host.json" },
     { "path": "../../host/webserver" },
-    { "path": "../../runtime-diagnostics/invariants" },
     { "path": "../../core/agent" },
     { "path": "../../core/session" },
     { "path": "../../core/tools" },
