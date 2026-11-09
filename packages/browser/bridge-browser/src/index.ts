@@ -156,7 +156,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     ),
   ])
   const browserContext = new BrowserContextInjector(ctx.agents)
-  ctx.on('agent/session-start', ({ agent }) => { browserContext.activate(agent) })
+  ctx.on('agent/created', ({ agent }) => { browserContext.activate(agent) })
 
   const purgeSession = async (sessionId: string): Promise<void> => {
     const runningSessionIds = new Set<string>()
@@ -178,7 +178,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
 
   const server = new BridgeServer({
     token: tokenRes.token,
-    apiHandler,
+    apiHandler: apiHandler as never,
     interceptRpc,
     openEvents: bridgeEventSource(ctx),
     toolTimeoutMs: resolved.toolTimeoutMs,

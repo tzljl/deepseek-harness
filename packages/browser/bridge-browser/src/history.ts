@@ -38,10 +38,10 @@ export function sessionHistoryInterceptor(
     if (method !== 'session/history') return null
     const sessionId = (payload as { sessionId?: unknown } | null)?.sessionId
     if (typeof sessionId !== 'string' || sessionId.length === 0) return null
-    const inspected = await sessionController.inspect(sessionId as never, signal)
+    const inspected = await sessionController.events({ address: { sessionId } } as never, signal)
     const value: BridgeHistoryValue = {
-      events: inspected.events.map(event => ({ event })),
-      hasMore: false,
+      events: inspected.records.map((event: unknown) => ({ event })),
+      hasMore: inspected.hasMore,
     }
     return {
       kind: 'reply',

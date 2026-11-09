@@ -29,7 +29,7 @@ export interface GatewayEnvelope {
 
 /** Transport shape the bridge server consumes (same as `ConnectionFetchHandler`). */
 export interface GatewayFetchHandler {
-  fetch(request: Request): Promise<Response>
+  fetch(request: Request, peer?: unknown): Promise<Response>
 }
 
 /**

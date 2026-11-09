@@ -29,7 +29,7 @@ export function createBrowserSnapshotMessage(snapshot: string): UserMessage {
   return createUserMessage({
     content: [{ type: 'text', text }],
     source: {
-      kind: 'plugin',
+      kind: 'system-prompt' as never,
       plugin: BROWSER_CONTEXT_PLUGIN,
       form: 'snapshot',
       sections: [{ name: 'browser-page', text }],

@@ -75,7 +75,7 @@ const ApiHost = {
       inspect: async (sessionId: SessionId) => {
         const session = ctx.sessions.get(sessionId)
         if (session === undefined) return { meta: undefined, events: [] }
-        return { meta: session.header, events: [...session.events] }
+        return { meta: session.header, events: [...(session as unknown as { events: unknown[] }).events] }
       },
     } as never)
     // The bridge declares workspaceController in its inject list; the
@@ -217,7 +217,7 @@ async function loadComposition(): Promise<{ ctx: Context; configPath: string; po
   })
   await context.loader.await()
   const web = context.get('webServer') as typeof WebServer.prototype
-  return { ctx: context, configPath, port: web.port }
+  return { ctx: context, configPath, port: web.port as number }
 }
 
 /** 扩展上下文 Origin（回环免 token 的必要条件）。 */
