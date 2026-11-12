@@ -51,6 +51,16 @@ export class TabAffinityController {
   private revision = 0
   private sessionTabs = new Map<string, AffinityTab>()
   private focusedSessionId: string | null = null
+  /**
+   * Sessions whose own tab was closed after binding.
+   *
+   * Deliberately separate from `sessionTabs`: an unmapped session has two very
+   * different meanings. "Never bound" means the first direct browser call may
+   * bind the then-active tab (same rule as prompt submission), while "bound
+   * then closed" must stay fail-closed until the user picks a page, otherwise a
+   * closed tab would silently move the assistant onto whatever is active now.
+   */
+  private lostSessions = new Set<string>()
 
   snapshot(): TabAffinityState {
     return {
@@ -64,6 +74,7 @@ export class TabAffinityController {
   /** Associate a session with its controlled tab. */
   bindSession(sessionId: string, tab: AffinityTab): void {
     this.sessionTabs.set(sessionId, { ...tab })
+    this.lostSessions.delete(sessionId)
   }
 
   sessionMap(): Record<string, AffinityTab> {
@@ -72,6 +83,17 @@ export class TabAffinityController {
       result[sid] = { ...tab }
     }
     return result
+  }
+
+  /** Sessions whose own tab was closed, so they must not auto-bind. */
+  lostSessionIds(): string[] {
+    return [...this.lostSessions]
+  }
+
+  restoreLostSessions(sessionIds: readonly string[]): void {
+    for (const sid of sessionIds) {
+      if (typeof sid === 'string' && sid.trim() !== '') this.lostSessions.add(sid)
+    }
   }
 
   restoreSessionTabs(sessions: Record<string, AffinityTab>): void {
@@ -104,7 +126,9 @@ export class TabAffinityController {
       this.controlled = null
       this.keptActiveTabId = null
       this.hasBound = true
-      this.lost = true
+      // Only a session that actually lost its own tab is fail-closed; a session
+      // that was never bound stays bindable (see resolveTarget).
+      this.lost = this.lostSessions.has(sessionId)
     } else {
       this.controlled = { ...tab }
       this.hasBound = true
@@ -155,6 +179,7 @@ export class TabAffinityController {
     if (sid !== undefined && sid !== '') {
       if (this.sessionTabs.has(sid)) return false
       this.sessionTabs.set(sid, { ...tab })
+      this.lostSessions.delete(sid)
       if (this.focusedSessionId === null) this.focusedSessionId = sid
       if (this.focusedSessionId === sid) {
         this.active = { ...tab }
@@ -181,6 +206,7 @@ export class TabAffinityController {
     if (sid === '') return false
     const previous = this.sessionTabs.get(sid)
     this.sessionTabs.set(sid, { ...tab })
+    this.lostSessions.delete(sid)
     this.focusedSessionId = sid
     this.active = { ...tab }
     this.controlled = { ...tab }
@@ -201,6 +227,7 @@ export class TabAffinityController {
     this.lost = false
     if (sid !== undefined && sid !== '') {
       this.sessionTabs.set(sid, { ...tab })
+      this.lostSessions.delete(sid)
       this.focusedSessionId = sid
     }
     this.revision += 1
@@ -239,6 +266,7 @@ export class TabAffinityController {
     for (const [sid, sTab] of this.sessionTabs.entries()) {
       if (sTab.tabId === tabId) {
         this.sessionTabs.delete(sid)
+        this.lostSessions.add(sid)
         if (this.focusedSessionId === sid) this.focusedSessionId = null
         sessionRemoved = true
       }
@@ -308,6 +336,7 @@ export class TabAffinityController {
     this.lost = false
     if (sessionId !== undefined && sessionId.trim() !== '') {
       this.sessionTabs.set(sessionId, { ...this.active })
+      this.lostSessions.delete(sessionId)
     }
     this.revision += 1
     return true
@@ -317,7 +346,11 @@ export class TabAffinityController {
   resolveTarget(sessionId?: string): TabTargetResolution {
     if (sessionId !== undefined) {
       const tab = this.sessionTabs.get(sessionId)
-      return tab === undefined ? { kind: 'lost' } : { kind: 'target', tab: { ...tab } }
+      if (tab !== undefined) return { kind: 'target', tab: { ...tab } }
+      // Never bound: the first direct browser call of a session binds the
+      // then-active tab, exactly like its first prompt does. Only a session
+      // whose own tab was closed stays fail-closed ('lost').
+      return this.lostSessions.has(sessionId) ? { kind: 'lost' } : { kind: 'initial' }
     }
     switch (this.status()) {
       case 'unbound': return { kind: 'initial' }

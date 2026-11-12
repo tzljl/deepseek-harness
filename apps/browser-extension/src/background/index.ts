@@ -144,8 +144,19 @@ const STORAGE_KEY = 'dshSettings'
 const TAB_AFFINITY_STORAGE_KEY = 'dshTabAffinity'
 
 type StoredTabAffinity =
-  | { controlledTabId: number; keptActiveTabId?: number; sessionTabs?: Record<string, AffinityTab>; focusedSessionId?: string }
-  | { lost: true; sessionTabs?: Record<string, AffinityTab>; focusedSessionId?: string }
+  | {
+    controlledTabId: number
+    keptActiveTabId?: number
+    sessionTabs?: Record<string, AffinityTab>
+    lostSessions?: string[]
+    focusedSessionId?: string
+  }
+  | {
+    lost: true
+    sessionTabs?: Record<string, AffinityTab>
+    lostSessions?: string[]
+    focusedSessionId?: string
+  }
 
 let settings: Settings = { ...SETTINGS_DEFAULTS }
 let caps: BridgeCaps | null = null
@@ -483,8 +494,11 @@ function storedAffinity(): StoredTabAffinity | null {
   const state = tabAffinity.snapshot()
   const sessionTabs = tabAffinity.sessionMap()
   const hasSessionTabs = Object.keys(sessionTabs).length > 0
+  const lostSessions = tabAffinity.lostSessionIds()
+  const hasLostSessions = lostSessions.length > 0
   const focusedSessionId = tabAffinity.focusedSession()
   const focus = focusedSessionId === null ? {} : { focusedSessionId }
+  const loss = hasLostSessions ? { lostSessions } : {}
   if (state.controlled !== null) {
     return {
       controlledTabId: state.controlled.tabId,
@@ -492,12 +506,15 @@ function storedAffinity(): StoredTabAffinity | null {
         ? { keptActiveTabId: state.active.tabId }
         : {}),
       ...(hasSessionTabs ? { sessionTabs } : {}),
+      ...loss,
       ...focus,
     }
   }
   return state.status === 'lost'
-    ? { lost: true, ...(hasSessionTabs ? { sessionTabs } : {}), ...focus }
-    : (hasSessionTabs ? { lost: true, sessionTabs, ...focus } : null)
+    ? { lost: true, ...(hasSessionTabs ? { sessionTabs } : {}), ...loss, ...focus }
+    : (hasSessionTabs || hasLostSessions
+        ? { lost: true, ...(hasSessionTabs ? { sessionTabs } : {}), ...loss, ...focus }
+        : null)
 }
 
 function persistTabAffinity(): void {
@@ -556,9 +573,15 @@ async function syncActiveTab(windowId?: number, signal?: AbortSignal): Promise<c
 
 async function restoreTabAffinity(): Promise<void> {
   let record: StoredTabAffinity | null = null
+  let lostSessionsToRestore: string[] = []
   try {
     const stored = await chrome.storage.session.get(TAB_AFFINITY_STORAGE_KEY)
     const candidate = stored[TAB_AFFINITY_STORAGE_KEY] as Partial<StoredTabAffinity> | undefined
+    const storedLostSessions = (candidate as { lostSessions?: unknown } | undefined)?.lostSessions
+    if (Array.isArray(storedLostSessions)) {
+      lostSessionsToRestore = storedLostSessions.filter((sid): sid is string => typeof sid === 'string')
+    }
+    const storedLoss = lostSessionsToRestore.length > 0 ? { lostSessions: lostSessionsToRestore } : {}
     const controlledTabId = (candidate as { controlledTabId?: unknown } | undefined)?.controlledTabId
     const focusedSessionId = (candidate as { focusedSessionId?: unknown } | undefined)?.focusedSessionId
     const focus = typeof focusedSessionId === 'string' && focusedSessionId.trim() !== '' ? { focusedSessionId } : {}
@@ -571,6 +594,7 @@ async function restoreTabAffinity(): Promise<void> {
           ? { keptActiveTabId }
           : {}),
         ...(typeof sessionTabs === 'object' && sessionTabs !== null ? { sessionTabs } : {}),
+        ...storedLoss,
         ...focus,
       }
     } else if ((candidate as { lost?: unknown } | undefined)?.lost === true) {
@@ -578,6 +602,7 @@ async function restoreTabAffinity(): Promise<void> {
       record = {
         lost: true,
         ...(typeof sessionTabs === 'object' && sessionTabs !== null ? { sessionTabs } : {}),
+        ...storedLoss,
         ...focus,
       }
     }
@@ -601,6 +626,7 @@ async function restoreTabAffinity(): Promise<void> {
     }
     tabAffinity.restoreSessionTabs(restoredSessions)
   }
+  if (lostSessionsToRestore.length > 0) tabAffinity.restoreLostSessions(lostSessionsToRestore)
   tabAffinity.restoreFocusedSession(record?.focusedSessionId ?? null)
 
   if (record !== null && 'controlledTabId' in record) {

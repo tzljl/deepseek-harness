@@ -181,7 +181,59 @@ describe('TabAffinityController', () => {
     restoredAffinity.restoreSessionTabs(sessionMap)
     expect(restoredAffinity.resolveTarget('session-1')).toEqual({ kind: 'target', tab: tab(1) })
     expect(restoredAffinity.resolveTarget('session-2')).toEqual({ kind: 'target', tab: tab(2) })
-    expect(restoredAffinity.resolveTarget('session-missing')).toEqual({ kind: 'lost' })
+    expect(restoredAffinity.resolveTarget('session-missing')).toEqual({ kind: 'initial' })
     expect(restoredAffinity.allowsTarget(2, 'session-missing')).toBe(false)
+  })
+  it('binds a never-bound session on its first direct call instead of reporting a closed tab', () => {
+    // Regression: a session created outside the side panel (or resumed with a new
+    // id) has no tab mapping. That used to resolve to 'lost' forever, so every
+    // browser tool answered "The controlled tab was closed" with no way out.
+    const affinity = new TabAffinityController()
+    affinity.observeActive(tab(2))
+
+    expect(affinity.resolveTarget('session-fresh')).toEqual({ kind: 'initial' })
+    expect(affinity.bindInitial(tab(2), 'session-fresh')).toBe(true)
+    expect(affinity.resolveTarget('session-fresh')).toEqual({ kind: 'target', tab: tab(2) })
+    expect(affinity.lostSessionIds()).toEqual([])
+  })
+
+  it('stays fail-closed for a session whose own tab was closed', () => {
+    const affinity = new TabAffinityController()
+    affinity.observeActive(tab(1))
+    affinity.bindInitial(tab(1), 'session-1')
+    affinity.observeActive(tab(2))
+
+    expect(affinity.removeTab(1)).toBe(true)
+    expect(affinity.lostSessionIds()).toEqual(['session-1'])
+    expect(affinity.resolveTarget('session-1')).toEqual({ kind: 'lost' })
+    expect(affinity.allowsTarget(2, 'session-1')).toBe(false)
+
+    // The panel's explicit choice is still the way back.
+    expect(affinity.rebindActive(tab(2), 'session-1')).toBe(true)
+    expect(affinity.lostSessionIds()).toEqual([])
+    expect(affinity.resolveTarget('session-1')).toEqual({ kind: 'target', tab: tab(2) })
+  })
+
+  it('keeps other sessions usable when focusing a never-bound session', () => {
+    const affinity = new TabAffinityController()
+    affinity.observeActive(tab(1))
+    affinity.bindInitial(tab(1), 'session-1')
+    affinity.observeActive(tab(2))
+
+    affinity.focusSession('session-2')
+    expect(affinity.snapshot()).toMatchObject({ status: 'unbound', controlled: null })
+    expect(affinity.resolveTarget('session-1')).toEqual({ kind: 'target', tab: tab(1) })
+    expect(affinity.resolveTarget('session-2')).toEqual({ kind: 'initial' })
+  })
+
+  it('survives a worker restart without re-binding a session that lost its tab', () => {
+    const affinity = new TabAffinityController()
+    affinity.restoreLostSessions(['session-lost', 'session-lost'])
+    expect(affinity.lostSessionIds()).toEqual(['session-lost'])
+    expect(affinity.resolveTarget('session-lost')).toEqual({ kind: 'lost' })
+
+    affinity.observeActive(tab(3))
+    expect(affinity.bindInitial(tab(3), 'session-lost')).toBe(true)
+    expect(affinity.resolveTarget('session-lost')).toEqual({ kind: 'target', tab: tab(3) })
   })
 })
